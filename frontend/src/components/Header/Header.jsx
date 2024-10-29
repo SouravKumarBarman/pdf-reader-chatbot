@@ -49,7 +49,7 @@ const Header = () => {
   const handleFileUpload = () => document.getElementById("fileInput").click();
 
   return (
-    <div className="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
+    <div className="flex flex-wrap justify-between items-center mx-0 w-full shadow-md">
       <div className="text-center">
         <img className="p-4" src="./logo.png" alt="App Logo" width="150" />
       </div>

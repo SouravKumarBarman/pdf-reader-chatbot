@@ -1,6 +1,7 @@
 import axios from "axios";
 import {  useState } from "react";
 import { useSelector } from "react-redux";
+import Markdown from 'react-markdown'
 
 const QuestionPage = () => {
   const pdf_id = useSelector(state=> state.pdf_id);
@@ -44,6 +45,8 @@ const QuestionPage = () => {
 
       setLoading(false);
       setError(false);
+      
+    // eslint-disable-next-line no-unused-vars
     } catch (error) {
       setLoading(false);
       setError(true);
@@ -51,29 +54,34 @@ const QuestionPage = () => {
   };
 
   return (
-    <div className="wrapper">
+    <div className="px-auto">
       {/* Question-Answer part */}
       {isShow && question && (
-        <div className="question">
-          <img alt="" />
+        <div className="flex mt-4">
+          <img src="./question_icon.png" alt="client" className="inline-block mr-2 w-14 h-12 ml-5"/>
+          <div className=" bg-blue-100 text-blue-800 p-4 rounded-lg shadow-md max-w-lg mr-auto my-2">
           <p>{question}</p>
+          </div>
         </div>
       )}
       {loading ? (
         <h4>Loading.....</h4>
       ) : question && answer ? (
-        <div className="answer">
-          <img alt="" />
-          <p>{answer}</p>
+        <div className="flex justify-center">
+          <img src="./answer_logo.png" alt="gemini" className="inline-block mr-2 w-14 h-12 ml-5"/>
+          <div className="bg-green-100 text-green-800 p-4 rounded-lg shadow-md max-w-6xl mr-auto my-2">
+            <Markdown>{answer}</Markdown>
+          </div>
         </div>
       ) : (
         error && <h4>Something went wrong.</h4>
       )}
 
       {/* Input field part */}
-      <div className="input-wrapper">
-        <form onSubmit={handleAskQuestion}>
+      <div className="flex justify-center fixed bottom-0 left-0 w-full bg-white p-4">
+        <form className="flex justify-center items-center w-full max-w-lg mx-auto" onSubmit={handleAskQuestion}>
           <input
+            className="shadow-md w-full border border-gray-300 bg-white text-black placeholder-gray-400 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             type="text"
             value={question}
             placeholder="Type your question here..."
@@ -81,9 +89,10 @@ const QuestionPage = () => {
           />
           <button
             type="submit"
-            style={{ background: "none", border: "none", padding: 0 }}
+            className="shadow-md ml-2 px-4 py-2 bg-white text-black rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            // style={{ background: "none", border: "none", padding: 0 }}
           >
-            <img alt="Send" />
+            <img src="./send-icon.png" alt="Send" width="45px"/>
           </button>
         </form>
       </div>
