@@ -22,5 +22,5 @@ This is a PDF QnA application that allows users to upload PDF files and ask ques
 - React
 - Tailwind CSS
 - Axios
-- Redux Toolkit (if applicable)
-- Markdown rendering (if applicable)
+- Redux Toolkit 
+- Markdown rendering
