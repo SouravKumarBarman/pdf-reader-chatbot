@@ -54,7 +54,7 @@ const QuestionPage = () => {
   };
 
   return (
-    <div className="px-auto">
+    <div className="">
       {/* Question-Answer part */}
       {isShow && question && (
         <div className="flex mt-4">

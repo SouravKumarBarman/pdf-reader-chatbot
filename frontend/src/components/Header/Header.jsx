@@ -58,7 +58,7 @@ const Header = () => {
         <div className="flex items-center">
           <div className="mr-3">
             {loading ? (
-              <p>Loading...</p>
+              <p className="">Loading...</p>
             ) : error ? (
               <p className="text-red-500">{error}</p>
             ) : (
