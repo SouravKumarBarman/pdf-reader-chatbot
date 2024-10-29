@@ -24,3 +24,7 @@ This is a PDF QnA application that allows users to upload PDF files and ask ques
 - Axios
 - Redux Toolkit 
 - Markdown rendering
+
+## Screenshot
+![image alt](https://github.com/SouravKumarBarman/pdf-reader-chatbot/blob/main/mobile.png?raw=true)
+![image alt](https://github.com/SouravKumarBarman/pdf-reader-chatbot/blob/main/desktop.png?raw=true)
