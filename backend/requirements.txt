@@ -6,3 +6,6 @@ PyMuPDF
 langchain
 psycopg2-binary
 python-dotenv
+google
+google-generativeai
+langchain-google-genai
