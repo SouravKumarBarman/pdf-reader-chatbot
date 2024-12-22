@@ -27,7 +27,7 @@ const QuestionPage = () => {
       setLoading(true);
       await axios
         .post(
-          "http://127.0.0.1:8000/ask",
+          `${import.meta.env.VITE_APP_BACKEND_URL}/ask`,
           {
             pdf_id: pdf_id,
             question: question,
