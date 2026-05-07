@@ -27,7 +27,7 @@ const QuestionPage = () => {
       setLoading(true);
       await axios
         .post(
-          `${import.meta.env.VITE_APP_BACKEND_URL}/ask`,
+          `${import.meta.env.VITE_APP_BACKEND_URL || "http://127.0.0.1:8000"}/ask`,
           {
             pdf_id: pdf_id,
             question: question,
@@ -40,7 +40,6 @@ const QuestionPage = () => {
         )
         .then((response) => {
           setAnswer(response.data.answer);
-          setAnswer(response.dota.answer);
         });
 
       setLoading(false);
