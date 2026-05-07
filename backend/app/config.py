@@ -1,4 +1,13 @@
 import os
+from pydantic_settings import BaseSettings
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:Sourav7055@localhost/pdf_db")
-UPLOAD_FOLDER = "uploaded_pdfs"  # Directory for uploaded PDFs
+class Settings(BaseSettings):
+    UPLOAD_FOLDER: str = "uploaded_pdfs"
+    FAISS_FOLDER: str = "faiss_indices"
+    API_KEY: str = ""
+    CORS_ORIGINS: list[str] = ["*"]
+
+    class Config:
+        env_file = ".env"
+
+settings = Settings()

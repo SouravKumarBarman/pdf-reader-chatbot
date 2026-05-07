@@ -1,54 +1,76 @@
 from app.services.pdf_service import extract_text_from_pdf
-from app.config import UPLOAD_FOLDER
-from dotenv import load_dotenv
+from app.config import settings
 import os
-import google.generativeai as genai
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+import asyncio
+from google import genai
+from langchain_core.embeddings import Embeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
-from transformers import GPT2Tokenizer
-from langchain.schema import Document
+from langchain_core.documents import Document
 
-
-load_dotenv()  # Load variables from .env file
-secret_key=os.getenv("API_KEY")
-
-tokenizer=GPT2Tokenizer.from_pretrained("gpt2")
-
-def count_tokens(text:str)->int:
-    return len(tokenizer.encode(text))
-
-text_splitter=RecursiveCharacterTextSplitter(
-    chunk_size=512,
-    chunk_overlap=24,
-    length_function=count_tokens
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=1000,
+    chunk_overlap=100,
+    length_function=len
 )
 
-embeddings=GoogleGenerativeAIEmbeddings(
-            model="models/embedding-001",
-            google_api_key=secret_key
-        )
+class CustomGeminiEmbeddings(Embeddings):
+    def __init__(self, api_key: str):
+        self.client = genai.Client(api_key=api_key)
+        
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        embeddings = []
+        for text in texts:
+            res = self.client.models.embed_content(
+                model='models/gemini-embedding-2',
+                contents=text
+            )
+            embeddings.append(res.embeddings[0].values)
+        return embeddings
 
+    def embed_query(self, text: str) -> list[float]:
+        return self.embed_documents([text])[0]
 
+embeddings = CustomGeminiEmbeddings(api_key=settings.API_KEY)
 
+async def process_pdf(unique_filename: str):
+    """Extracts text from PDF, builds FAISS index, and saves it."""
+    filepath = os.path.join(settings.UPLOAD_FOLDER, unique_filename)
+    pdf_text = await extract_text_from_pdf(filepath)
+
+    chunks = text_splitter.create_documents([pdf_text])
+
+    # Run FAISS building in thread as it's CPU bound and potentially slow
+    def build_and_save():
+        db = FAISS.from_documents(chunks, embeddings)
+        index_path = os.path.join(settings.FAISS_FOLDER, unique_filename)
+        db.save_local(index_path)
+
+    await asyncio.to_thread(build_and_save)
 
 async def process_question(pdf_id: str, question: str):
-    # Retrieve the PDF text (this function assumes you have a way to get the PDF filename by id)
-    filepath = f"{UPLOAD_FOLDER}/{pdf_id}"
-    pdf_text = extract_text_from_pdf(filepath)
-
-    chunks=text_splitter.create_documents([pdf_text])
-
-    db=FAISS.from_documents(chunks, embeddings)
-
-    docs=db.similarity_search(question, k=3)
-
-    genai.configure(api_key=secret_key)  # Set the API key for GenerativeAI
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    index_path = os.path.join(settings.FAISS_FOLDER, pdf_id)
     
-    # Use LangChain to get the answer
-    prompt = f"Context: {docs[0].page_content}\nQuestion: {question}\nAnswer:"
-    answer = model.generate_content(prompt)
+    if not os.path.exists(index_path):
+        return "Error: Index for this PDF not found. It might still be processing."
+
+    def load_db_and_search():
+        db = FAISS.load_local(index_path, embeddings, allow_dangerous_deserialization=True)
+        return db.similarity_search(question, k=3)
+        
+    docs = await asyncio.to_thread(load_db_and_search)
+
+    context = "\n\n".join([doc.page_content for doc in docs])
     
+    client = genai.Client(api_key=settings.API_KEY)
     
-    return answer.text
+    prompt = f"Context:\n{context}\n\nQuestion: {question}\nAnswer:"
+    
+    def generate():
+        return client.models.generate_content(
+            model="gemini-flash-latest",
+            contents=prompt
+        )
+        
+    response = await asyncio.to_thread(generate)
+    return response.text
